@@ -1,7 +1,7 @@
 /* bin2h - create a C include file that defines the content of
  * a binary file as a char array. 
  * 
- * Written by Owen Klan  -  5th November, 2003
+ * Originally written by Owen Klan  -  5th November, 2003
  * 
  * 19th January, 2004:   - Changed code to place 16 bytes on a single line.
  */
@@ -18,71 +18,71 @@ char nibble_char(unsigned char b);
 
 int main(int argc, char *argv[])
 {
-    FILE *is = stdin, *os = stdout;    /* Input and Output streams */
-    int bytes_in_line = 0;	       /* Number of '\x??'s on this line */
-    int total_bytes  = 0;	       /* Total bytes read */
+    FILE *input_stream = stdin, *output_stream = stdout;    /* Input and Output streams */
+    int bytes_in_line = 0;             /* Number of '\x??'s on this line */
+    int total_bytes  = 0;              /* Total bytes read */
     unsigned char byte_read;
     
     if (argc < 2) {
-	fprintf(stderr, "USAGE: %s var_name source\n\n", argv[0]);
-	fprintf(stderr, "var_name is the name that the character array will"
-		" be given. Source is the\n");
-	fprintf(stderr, "name of the input data file. If omitted then input"
-		" is read from stdin.\n");
-	fprintf(stderr, "Output is written to stdout.\n");
-	return 1;
+        fprintf(stderr, "USAGE: %s var_name source\n\n", argv[0]);
+        fprintf(stderr, "var_name is the name that the character array will"
+                " be given. Source is the\n");
+        fprintf(stderr, "name of the input data file. If omitted then input"
+                " is read from stdin.\n");
+        fprintf(stderr, "Output is written to stdout.\n");
+        return 1;
     }
     
     /* Open the alternative input stream if one is given */
     if (argc > 2) {
-	if ((is = fopen(argv[2], "rb")) == NULL) {
-	    fprintf(stderr, "Failed opening %s as input file! %s\n",
-		    argv[2], strerror(errno));
-	    return 1;
-	}
+        if ((input_stream = fopen(argv[2], "rb")) == NULL) {
+            fprintf(stderr, "Failed opening %s as input file! %s\n",
+                    argv[2], strerror(errno));
+            return 1;
+        }
     }
     
     /* Perform the initial stuff first:
      *   - write a brief comment and then the beginning of the C
      *     declaration. */
-    write_header(os, argv[1]);
+    write_header(output_stream, argv[1]);
     
     /* Now, for each byte we write out the \x?? values to the C
      * string. We write a maximum of 16 (used to be 8) of these
      * on a line */
     do {
-	if ((bytes_in_line % 16) == 0) {
-	    /* Next line of bytes */
-	    fflush(os);
-	    
-	    if (total_bytes > 0)
-	      fprintf(os, "\"\n\"");
-	    else
-	      fprintf(os, "\n\"");
-	    
-	    bytes_in_line = 0;
-	}
-	fread(&byte_read, 1, 1, is);
-		
-	fprintf(os, "\\x%c%c", hi_nibble(byte_read), lo_nibble(byte_read));
-	bytes_in_line++;
-	
-	if (!feof(is))
-	  total_bytes++;
-	else
-	  break;
+        if ((bytes_in_line % 16) == 0) {
+            /* Next line of bytes */
+            fflush(output_stream);
+            
+            if (total_bytes > 0)
+                fprintf(output_stream, "\"\n\"");
+            else
+                fprintf(output_stream, "\n\"");
+
+            bytes_in_line = 0;
+        }
+        fread(&byte_read, 1, 1, input_stream);
+
+        fprintf(output_stream, "\\x%c%c", hi_nibble(byte_read), lo_nibble(byte_read));
+        bytes_in_line++;
+
+        if (!feof(input_stream))
+            total_bytes++;
+        else
+            break;
     } while (1);
     
     /* Finish off the file, including an integer definition for
      * the size of the binary content */
-    fprintf(os, "\";\n");
-    fprintf(os, "int %s_length = %d;\n", argv[1], total_bytes);
-    fprintf(os, "\n/* %d bytes in total */\n", total_bytes);
+    fprintf(output_stream, "\";\n");
+    fprintf(output_stream, "int %s_length = %d;\n", argv[1], total_bytes);
+    fprintf(output_stream, "\n/* %d bytes in total */\n", total_bytes);
     
     fprintf(stderr, "%d bytes written\n", total_bytes);
     
-    if (os != stdout)
-      fclose(os);
+    if (output_stream != stdout)
+        fclose(output_stream);
     
     return 0;
 }
@@ -93,9 +93,9 @@ char nibble_char(unsigned char b)
     char n = (b & 0x0F);
     
     if (n < 10)
-      return n + 0x30;
+        return n + 0x30;
     else
-      return n + 0x57; 
+        return n + 0x57; 
 }
 
 /* Write common beginning to header file */
