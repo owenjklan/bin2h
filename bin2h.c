@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
             fflush(output_stream);
             
             if (total_bytes > 0)
-                fprintf(output_stream, "\"\n\"");
+                fprintf(output_stream, "\"\n\t\"");
             else
-                fprintf(output_stream, "\n\"");
+                fprintf(output_stream, "\n\t\"");
 
             bytes_in_line = 0;
         }
@@ -76,10 +76,8 @@ int main(int argc, char *argv[])
     /* Finish off the file, including an integer definition for
      * the size of the binary content */
     fprintf(output_stream, "\";\n");
+    fprintf(output_stream, "\t// End of  '%s'\n\n", argv[1]);
     fprintf(output_stream, "int %s_length = %d;\n", argv[1], total_bytes);
-    fprintf(output_stream, "\n/* %d bytes in total */\n", total_bytes);
-    
-    fprintf(stderr, "%d bytes written\n", total_bytes);
     
     if (output_stream != stdout)
         fclose(output_stream);
